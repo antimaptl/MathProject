@@ -32,10 +32,13 @@ import MathPuzzleScreen from './Component/Screens/MathPuzzleScreen';
 import DataScreen from './Component/Screens/DataScreen';
 import StateData from './Component/Screens/StateData';
 import Lobby from './Component/Screens/Lobby';
+import MultiPlayerGame from './Component/Screens/MultiPlayerGame';
+import { Socket } from './Context/Socket';
 
 const Stack = createNativeStackNavigator();
 const App = () => {
   return (
+  <Socket>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -68,8 +71,11 @@ const App = () => {
         <Stack.Screen name="DataScreen" component={DataScreen} />
         <Stack.Screen name="StateData" component={StateData} />
          <Stack.Screen name="Lobby" component={Lobby} />
+          <Stack.Screen name="MultiPlayerGame" component={MultiPlayerGame} />
+           
       </Stack.Navigator>
     </NavigationContainer>
+    </Socket>
   )
 }
 const styles = StyleSheet.create({})

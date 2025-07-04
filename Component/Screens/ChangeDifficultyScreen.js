@@ -1,6 +1,6 @@
 // ChangeDifficultyScreen.js
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,17 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-const ChangeDifficultyScreen = () => {
+export default function ChangeDifficultyScreen({ route }) {
   const navigation = useNavigation();
+  const { gametype } = route.params || {};
 
   const handleSelect = (difficulty) => {
-    navigation.navigate('PlayGame', { selectedDifficulty: difficulty });
+    navigation.navigate('PlayGame', { selectedDifficulty: difficulty, gametype });
   };
 
   return (
@@ -25,11 +27,17 @@ const ChangeDifficultyScreen = () => {
       source={require('../Screens/Image/backGroundImage.png')}
       style={styles.background}
     >
+     
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <MaterialIcons name="arrow-back-ios" size={24} color="#fff" />
+      </TouchableOpacity>
+
       <View style={styles.modalWrapper}>
         <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.title}>Change Difficulty</Text>
-          </View>
+          <Text style={styles.title}>Change Difficulty</Text>
 
           {['easy', 'medium', 'hard'].map((level) => (
             <TouchableOpacity
@@ -37,18 +45,21 @@ const ChangeDifficultyScreen = () => {
               onPress={() => handleSelect(level)}
               style={styles.buttonWrapper}
             >
-              <View style={styles.difficultyBtnWrapper}>
-                <LinearGradient colors={['#EFA347', '#FF0F7B']} style={styles.difficultyBtn}>
-                  <Text style={styles.difficultyText}>{level.toUpperCase()}</Text>
-                </LinearGradient>
-              </View>
+              <LinearGradient
+                colors={['#EFA347', '#FF0F7B']}
+                style={styles.difficultyBtn}
+              >
+                <Text style={styles.difficultyText}>
+                  {level.toUpperCase()}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
       </View>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
   background: {
@@ -59,10 +70,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 100,
+    padding: 8,          // give it a nice touch target
+  },
   modalWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',      // so absolute back button still sits on top
   },
   modalContent: {
     width: width * 0.8,
@@ -70,28 +89,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   title: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   buttonWrapper: {
     marginBottom: 12,
-  },
-  difficultyBtnWrapper: {
-    width: '100%',
   },
   difficultyBtn: {
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   difficultyText: {
     color: '#fff',
@@ -99,5 +110,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-export default ChangeDifficultyScreen;

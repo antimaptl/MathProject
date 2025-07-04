@@ -15,19 +15,12 @@ const { width, height } = Dimensions.get('window');
 const BottomTab = () => {
   let lastBackPressTime = 0;
 
-  useEffect(() => {
-    const backAction = () => {
-      const currentTime = new Date().getTime();
-      const timeDifference = currentTime - lastBackPressTime;
-      if (timeDifference < 2000) {
-        BackHandler.exitApp();
-      } else {
-        ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
-        lastBackPressTime = currentTime;
-        return true;
-      }
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Let React Navigation handle the back button (default behavior)
+      return false;
+    });
+
     return () => backHandler.remove();
   }, []);
 

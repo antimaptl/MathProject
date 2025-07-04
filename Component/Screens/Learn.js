@@ -1,11 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
 const Learn = () => {
   return (
-    <View>
-      <Text>Learn</Text>
-    </View>
+   <View style={{flex:1}}>
+       <Image
+       style={{height:"100%",width:"auto",resizeMode:"cover"}}
+          source={require('../Screens/Image/comingsoonpng.jpg')}
+       />
+       </View>
   )
 }
 

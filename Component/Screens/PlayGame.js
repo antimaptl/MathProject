@@ -8,7 +8,7 @@ import {
     Dimensions,
     ScrollView,
     Image,
-    PixelRatio
+    PixelRatio,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,9 +18,9 @@ const scaleFont = (size) => size * PixelRatio.getFontScale();
 
 const PlayGame = ({ route }) => {
     const navigation = useNavigation();
-    const { selectedDifficulty } = route.params || {};
-    console.log("Selected Difficulty:", selectedDifficulty);
+    const { gametype } = route.params || {};
 
+    const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
     const [selectedTimer, setSelectedTimer] = useState('30 sec');
     const [selectedSymbol, setSelectedSymbol] = useState('(+), (-), (x) and (/)');
 
@@ -49,13 +49,13 @@ const PlayGame = ({ route }) => {
                 symbolValue = 'sum,difference,product,quotient';
             }
 
-            // 🛠 Always set qm based on selectedDifficulty
             let storedQm = '0';
             if (selectedDifficulty === 'medium') {
                 storedQm = '6';
             } else if (selectedDifficulty === 'hard') {
                 storedQm = '18';
             }
+
             await AsyncStorage.setItem('qm', storedQm);
 
             const params = {
@@ -66,7 +66,7 @@ const PlayGame = ({ route }) => {
             };
 
             console.log("🚀 Navigating to MathInputScreen with params:", params);
-            navigation.navigate("MathInputScreen", params);
+            navigation.navigate(gametype === 'play' ? "MathInputScreen" : "Lobby", params);
         } catch (error) {
             console.error("❌ Error during handlePlayPress:", error);
         }
@@ -83,6 +83,15 @@ const PlayGame = ({ route }) => {
 
             <Text style={styles.heading}>Play Game</Text>
 
+            {/* Difficulty Section */}
+            <Text style={styles.sectionTitle}>Select Difficulty</Text>
+            <View style={styles.row}>
+                {renderOption('Easy', selectedDifficulty === 'easy', () => setSelectedDifficulty('easy'))}
+                {renderOption('Medium', selectedDifficulty === 'medium', () => setSelectedDifficulty('medium'))}
+                {renderOption('Hard', selectedDifficulty === 'hard', () => setSelectedDifficulty('hard'))}
+            </View>
+
+            {/* Timer Section */}
             <Text style={styles.sectionTitle}>Timer</Text>
             <View style={styles.row}>
                 {renderOption('30 sec', selectedTimer === '30 sec', () => setSelectedTimer('30 sec'))}
@@ -90,12 +99,14 @@ const PlayGame = ({ route }) => {
                 {renderOption('3 Minute', selectedTimer === '3 Minute', () => setSelectedTimer('3 Minute'))}
             </View>
 
+            {/* Symbol Section */}
             <Text style={styles.sectionTitle}>Symbol</Text>
             <View style={styles.row1}>
                 {renderOption('(+) and (-)', selectedSymbol === '(+) and (-)', () => setSelectedSymbol('(+) and (-)'))}
                 {renderOption('(+), (-), (x) and (/)', selectedSymbol === '(+), (-), (x) and (/)', () => setSelectedSymbol('(+), (-), (x) and (/)'))}
             </View>
 
+            {/* Play Button */}
             <TouchableOpacity style={styles.playButton} onPress={handlePlayPress}>
                 <Text style={styles.playButtonText}>Play</Text>
             </TouchableOpacity>
@@ -109,7 +120,7 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         backgroundColor: '#0B1220',
-        padding: width * 0.05,
+        padding: width * 0.07,
         paddingBottom: height * 0.07,
     },
     heading: {
@@ -153,8 +164,8 @@ const styles = StyleSheet.create({
         fontSize: scaleFont(14),
     },
     selectedOptionButton: {
-        paddingVertical: height * 0.015,
-        paddingHorizontal: width * 0.038,
+        paddingVertical: height * 0.014,
+        paddingHorizontal: width * 0.040,
         borderRadius: 0,
         marginRight: width * 0.025,
         marginTop: height * 0.01,

@@ -45,12 +45,11 @@ export default function EmailVerification() {
     console.log('OTP entered:', userEnteredOtp);
 
     if (
-      !userData.userName?.trim() ||
+      !userData.username?.trim() ||
       !userData.email?.trim() ||
       !userData.password?.trim() ||
-      !userData.gender?.trim() ||
-      !userData.age?.toString().trim() ||
-      !userData.location?.trim() ||
+      !userData.country?.trim() ||
+      !userData.dateOfBirth?.toString().trim() ||
       !userEnteredOtp.trim()
     ) {
       Alert.alert('Error', 'Please fill all fields before submitting.');
@@ -58,12 +57,11 @@ export default function EmailVerification() {
     }
 
     const payload = {
-      userName: userData.userName.trim(),
+      username: userData.username.trim(),
       email: userData.email.trim(),
       password: userData.password.trim(),
-      gender: userData.gender.trim(),
-      age: Number(userData.age),
-      location: userData.location.trim(),
+      country: userData.country.trim(),
+      dateOfBirth: Number(userData.dateOfBirth),
       otp: userEnteredOtp.trim(),
     };
 
@@ -71,7 +69,7 @@ export default function EmailVerification() {
 
     try {
       const registerResponse = await fetch(
-        'http://43.204.148.176:8000/api/v1/auth/register/',
+        'http://13.203.67.227:3000/api/auth/signup',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

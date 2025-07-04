@@ -70,7 +70,6 @@ const MathInputScreen = () => {
         setQuestion('Authorization token missing');
         return;
       }
-
       const queryParams = new URLSearchParams();
       queryParams.append('difficulty', difficulty);
       queryParams.append('symbol', symbol);
@@ -86,7 +85,6 @@ const MathInputScreen = () => {
       });
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
       const data = await response.json();
       const q = data?.question;
       const mathSymbol = getMathSymbol(q.symbol);
@@ -119,7 +117,6 @@ const MathInputScreen = () => {
             attempted > 0
               ? Math.round((correctAnswersRef.current / attempted) * 100)
               : 0;
-
           navigation.replace('WellDoneScreen', {
             totalScore: scoreRef.current,
             correctCount: correctAnswersRef.current,
@@ -205,9 +202,9 @@ const MathInputScreen = () => {
           </Text>
         </View>
 
-        <TouchableOpacity onPress={() => setIsPaused(!isPaused)} style={styles.iconButton1}>
+        {/* <TouchableOpacity onPress={() => setIsPaused(!isPaused)} style={styles.iconButton1}>
           <Icon name={isPaused ? 'play-skip-forward' : 'pause'} size={scaleFont(16)} color="#fff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <Text style={styles.question}>{loading ? 'Loading...' : question}</Text>
@@ -263,7 +260,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B1220' },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#1E293B',
     paddingHorizontal: width * 0.04,
@@ -271,6 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.05,
     borderBottomEndRadius: 15,
     borderBottomStartRadius: 15,
+     gap:125,
   },
   iconButton: {
     width: width * 0.06,
@@ -279,6 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+   
   },
   iconButton1: {
     width: width * 0.07,

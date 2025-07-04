@@ -53,7 +53,7 @@ const Home = () => {
       {/* Center Button */}
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate("ChangeDifficultyScreen")
+          navigation.navigate("PlayGame",{gametype:"play"})
         }}
         style={styles.newButton1} >
         <Image
@@ -64,7 +64,7 @@ const Home = () => {
       </TouchableOpacity>
        <TouchableOpacity
         onPress={() => {
-          navigation.navigate("Lobby")
+          navigation.navigate("PlayGame",{gametype:"playOnline"})
         }}
         style={styles.newButton} >
         <Image

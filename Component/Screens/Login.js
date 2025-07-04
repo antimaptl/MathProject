@@ -56,9 +56,10 @@ const handleLogin = async () => {
         await AsyncStorage.setItem('authToken', token);
         await AsyncStorage.setItem('userData', JSON.stringify(user));
           console.log("===================%%%%%%%%%%%%%%%%%%%"+AsyncStorage.getItem("userData") )
-        Alert.alert('Success', 'Login successful', [
-          { text: 'OK', onPress: () => navigation.navigate('BottomTab') },
-        ]);
+        // Alert.alert('Success', 'Login successful', [
+        //   { text: 'OK', onPress: () => navigation.navigate('BottomTab') },
+        // ]);
+        navigation.navigate('BottomTab')
       } else {
         Alert.alert('Login Failed', 'Token or user data not received');
       }

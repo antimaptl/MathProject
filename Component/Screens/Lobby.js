@@ -11,12 +11,14 @@ import { useNavigation } from '@react-navigation/native';
 import { Search, X, Users, Clock, Star } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import io from 'socket.io-client';
+import { useSocket } from '../../Context/Socket';
 
-const SOCKET_SERVER_URL = 'http://192.168.1.8:3000/';
+// const SOCKET_SERVER_URL = 'http://192.168.1.10:3000/';
 
 export default function Lobby() {
+  const socket = useSocket();
   const navigation = useNavigation();
-
+  let playerId;
   const [isSearching, setIsSearching] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [playersInQueue, setPlayersInQueue] = useState(47);
@@ -30,25 +32,42 @@ export default function Lobby() {
 
   const socketRef = useRef(null);
 
+  const storePlrId = async (playerId) => {
+    await AsyncStorage.setItem('playerId', playerId)
+  }
   useEffect(() => {
-    const socket = io(SOCKET_SERVER_URL);
+    // const socket = io(SOCKET_SERVER_URL);
+    if (!socket) return;
     socketRef.current = socket;
+
+
 
     socket.on('connect', () => {
       console.log('🟢 Connected to socket server');
     });
 
     socket.on('lobby-joined', (data) => { // ✅ Correct
+      storePlrId(data.player.id);
       console.log('📥 lobby-joined:', data);
     });
-    socket.on('match-found', ({ gameRoom,opponent,initialQuestionMeter}) => {
-      console.log(gameRoom,opponent,initialQuestionMeter)
+    socket.on('match-found', ({ gameRoom, opponent, initialQuestionMeter }) => {
+      console.log("match Found Line 49")
+
+      console.log("2222222222222222222222" + gameRoom.id, opponent, initialQuestionMeter)
+    })
+
+    socket.on('game-started', ({ gameState, currentQuestion }) => {
+      navigation.navigate('MultiPlayerGame', { currentQuestion }
+      );
+      console.log(gameState, currentQuestion)
     })
 
     return () => {
       socket.disconnect();
+      socket.off('connect');
+      socket.off('lobby-joined');
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -106,18 +125,18 @@ export default function Lobby() {
   const handleStartSearch = async () => {
     setIsSearching(true);
     setSearchTime(0);
-    
+
     try {
       const storedUserData = await AsyncStorage.getItem('userData');
       const userData = storedUserData ? JSON.parse(storedUserData) : null;
       console.log("===================%%%%%%%%%", userData);
-      if (userData && socketRef.current) {
+      if (socketRef.current && socketRef.current.connected) {
         socketRef.current.emit('join-lobby', {
           userId: userData.id,
           username: userData.username,
           email: userData.email,
           rating: userData.pr?.pvp?.easy ?? 1000,
-          diff : 'easy'
+          diff: 'easy'
         });
       } else {
         console.warn('User data not found or socket not ready');
