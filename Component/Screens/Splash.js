@@ -22,12 +22,12 @@ export default function ({ navigation }) {
         navigation.replace('Login');
       }
     };
-    setTimeout(checkAuth, 2000); 
+    setTimeout(checkAuth, 3000); 
   }, [navigation]);
   return (
     <View style={styles.container}>
-      <FastImage
-        source={require('../Screens/Image/loadingGif1.gif')} // update path if different
+      <Image
+        source={require('../Screens/Image/logo.png')} // update path if different
         style={styles.gif}
         resizeMode="contain"
       />
@@ -40,10 +40,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // match your splash background
+    backgroundColor: '#0f162b', // match your splash background
   },
   gif: {
-    width: 200,
-    height: 200,
+    width: 300,
+    height: 300,
   },
 })

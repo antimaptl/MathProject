@@ -10,6 +10,7 @@ import {
   Dimensions,
   PixelRatio
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width, height } = Dimensions.get('window');
 const scaleFont = (size) => size * PixelRatio.getFontScale();
@@ -18,14 +19,23 @@ const Home = () => {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
+    {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity> */}
       {/* Top Area with 2x2 icons */}
       <View style={styles.iconGrid}>
         {/* Left Column */}
-        <View style={styles.iconColumn}>
+          
+           <View style={styles.iconColumn}>
+            <TouchableOpacity onPress={()=>{
+              navigation.navigate("CommingSoon")
+            }}>  
           <Image
             source={require('../Screens/Image/funcation.png')}
             style={styles.gridIcon}
           />
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={() => {
               navigation.navigate("Profile");
@@ -39,14 +49,22 @@ const Home = () => {
 
         {/* Right Column */}
         <View style={styles.iconColumn}>
+         <TouchableOpacity onPress={()=>{
+              navigation.navigate("CommingSoon")
+            }}>  
           <Image
             source={require('../Screens/Image/setting.png')}
             style={styles.gridIcon}
           />
+           </TouchableOpacity>
+            <TouchableOpacity onPress={()=>{
+              navigation.navigate("CommingSoon")
+            }}>  
           <Image
             source={require('../Screens/Image/Mic.png')}
             style={styles.gridIcon}
           />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -80,6 +98,15 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
+   backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    // borderRadius: 20,
+    // padding: 5,
+  },
   container: {
     flex: 1,
     backgroundColor: '#0B1220',
@@ -89,6 +116,7 @@ const styles = StyleSheet.create({
   iconGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    // top:5
   },
   iconColumn: {
     flexDirection: 'column',

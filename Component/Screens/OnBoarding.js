@@ -21,7 +21,7 @@ const slides = [
     title: 'Puzzles',
     description:
       'Reference site about Lorem Ipsum, giving information on its origins as well as a random Lipsum generator.',
-    buttonText: 'Skip',
+    buttonText: 'Next',
   },
   {
     id: 2,

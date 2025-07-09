@@ -75,10 +75,29 @@ const PlayGame = ({ route }) => {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={{ flexDirection: "row", gap: width * 0.025 }}>
+            <TouchableOpacity onPress={() => {
+                navigation.navigate("CommingSoon")
+            }}>
                 <Image style={styles.icon} source={require('../Screens/Image/funcation.png')} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                 onPress={() => {
+                navigation.navigate("CommingSoon")
+            }}>
                 <Image style={styles.icon} source={require('../Screens/Image/profile.png')} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                 onPress={() => {
+                navigation.navigate("CommingSoon")
+            }}>
                 <Image style={[styles.icon, { marginStart: width * 0.50 }]} source={require('../Screens/Image/Mic.png')} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                 onPress={() => {
+                navigation.navigate("CommingSoon")
+            }}>
                 <Image style={styles.icon} source={require('../Screens/Image/setting.png')} />
+                </TouchableOpacity>
             </View>
 
             <Text style={styles.heading}>Play Game</Text>

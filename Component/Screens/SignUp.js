@@ -13,11 +13,10 @@ import {
   Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { toast } from 'sonner-native';
+import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from "@react-native-community/datetimepicker";
-
 
 const { width } = Dimensions.get('window');
 const scale = width / 375;
@@ -35,76 +34,55 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [gender, setGender] = useState(''); // Gender state
+  const [showGenderOptions, setShowGenderOptions] = useState(false); // Toggle gender options visibility
 
+  const [errors, setErrors] = useState({});
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
   const handleSignUp = async () => {
-    console.log('🧭 navigation object:', navigation);
+    let tempErrors = {};
+    if (!username.trim()) tempErrors.username = 'This field is required';
+    if (!email.trim()) tempErrors.email = 'This field is required';
+    else if (!validateEmail(email)) tempErrors.email = 'Please enter a valid email';
+    if (!password.trim()) tempErrors.password = 'This field is required';
+    if (!country.trim()) tempErrors.country = 'This field is required';
+    if (!dateOfBirth.trim()) tempErrors.dateOfBirth = 'This field is required';
+    if (!gender.trim()) tempErrors.gender = 'This field is required';
 
-    if (!username || !email || !password || !country || !dateOfBirth) {
-      Alert.alert('Missing Fields', 'Please fill all fields!');
+    if (Object.keys(tempErrors).length > 0) {
+      setErrors(tempErrors);
+      Toast.show({ type: 'error', text1: 'Form Error', text2: 'Please fix the errors above' });
       return;
     }
 
-    try {
-      console.log('➡️ Sending OTP to:', email);
+    setErrors({});
 
+    try {
       const response = await fetch('http://13.203.67.227:3000/api/auth/verifymail', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      console.log('📬 Response status:', response.status);
-
       const data = await response.json();
-      console.log('📨 Response data:', JSON.stringify(data, null, 2));
-
       if (data.success === true) {
-        console.log('🧾 Full userData going to EmailVerification:', {
-          username,
-          email,
-          password,
-          country,
-          dateOfBirth,
-          otp: data.otp,
+        
+        Toast.show({ type: 'success', text1: 'OTP Sent', text2: `OTP sent to ${email}` });
+        navigation.navigate('EmailVerification', {
+          userData: { username, email, password, country, dateOfBirth, gender },
         });
-
-        Alert.alert(
-          'Success',
-          'OTP sent successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                console.log('✅ Navigating to EmailVerification...');
-                navigation.navigate('EmailVerification', {
-                  userData: {
-                    username,
-                    email,
-                    password,
-                    country,
-                    dateOfBirth,
-                  },
-                });
-              },
-            },
-          ],
-          { cancelable: false }
-        );
-      }
-      else {
-        console.log('⚠️ OTP send failed:', data.message);
-        Alert.alert('Error', data.message || 'OTP send failed');
+      } else {
+        Toast.show({ type: 'error', text1: 'Failed', text2: data.message || 'Something went wrong!' });
       }
     } catch (error) {
-      console.log('❌ Error while sending OTP:', error);
-      Alert.alert('Error', 'Something went wrong!');
+      Toast.show({ type: 'error', text1: 'Network Error', text2: 'Please try again later.' });
     }
   };
-
-
 
   return (
     <KeyboardAvoidingView
@@ -117,9 +95,24 @@ export default function SignUp() {
           <View style={styles.formContainer}>
             <Text style={styles.title}>Register</Text>
 
-            <InputField icon={require('../Screens/Image/gender.png')} placeholder="Username" value={username} onChangeText={setUserName} />
-            <InputField icon={require('../Screens/Image/face.png')} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
-            <View style={styles.inputContainer}>
+            <InputField
+              icon={require('../Screens/Image/gender.png')}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUserName}
+              error={errors.username}
+            />
+
+            <InputField
+              icon={require('../Screens/Image/face.png')}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              error={errors.email}
+            />
+
+            <View style={[styles.inputContainer, errors.password && styles.errorBorder]}>
               <MaterialIcons name="lock" size={normalize(20)} color="#94A3B8" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -137,18 +130,51 @@ export default function SignUp() {
                 />
               </TouchableOpacity>
             </View>
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-            <InputField icon={require('../Screens/Image/location.png')} placeholder="country" value={country} onChangeText={setCountry} />
-            {/* Date Picker */}
+            <InputField
+              icon={require('../Screens/Image/location.png')}
+              placeholder="Country"
+              value={country}
+              onChangeText={setCountry}
+              error={errors.country}
+            />
+
+            <View style={[styles.dropdownContainer, errors.gender && styles.errorBorder]}>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => setShowGenderOptions(!showGenderOptions)}
+              >
+                <View style={styles.dropdownTextContainer}>
+                  <MaterialIcons name="person" size={normalize(24)} color="#94A3B8" style={styles.genderIcon} />
+                  <Text style={[styles.input1, { color: gender ? 'white' : '#94A3B8' }]}>{gender || 'Select Gender'}</Text>
+                </View>
+                <MaterialIcons
+                  name={showGenderOptions ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+                  size={normalize(24)}
+                  color="#94A3B8"
+                  style={styles.dropdownIcon}
+                />
+              </TouchableOpacity>
+              {showGenderOptions && (
+                <View style={styles.dropdownOptions}>
+                  {['Male', 'Female', 'Other'].map((option) => (
+                    <TouchableOpacity key={option} onPress={() => { setGender(option); setShowGenderOptions(false); }}>
+                      <Text style={styles.dropdownOptionText}>{option}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+            {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, errors.dateOfBirth && styles.errorBorder]}>
                 <MaterialIcons name="calendar-month" size={normalize(20)} color="#94A3B8" style={styles.inputIcon} />
-                {/* <Image style={styles.inputIcon} source={require('../Screens/Image/Cake.png')} /> */}
-                <Text style={[styles.input, { paddingVertical: normalize(10), color: dateOfBirth ? 'white' : '#94A3B8' }]}>
-                  {dateOfBirth || 'Date of Birth'}
-                </Text>
+                <Text style={[styles.input, { paddingVertical: normalize(10), color: dateOfBirth ? 'white' : '#94A3B8' }]}> {dateOfBirth || 'Date of Birth'}</Text>
               </View>
             </TouchableOpacity>
+            {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
 
             {showDatePicker && (
               <DateTimePicker
@@ -159,7 +185,7 @@ export default function SignUp() {
                 onChange={(event, date) => {
                   setShowDatePicker(false);
                   if (date) {
-                    const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                    const formattedDate = date.toISOString().split('T')[0];
                     setSelectedDate(date);
                     setDateOfBirth(formattedDate);
                   }
@@ -171,6 +197,7 @@ export default function SignUp() {
               <Text style={styles.loginButtonText}>Sign up</Text>
             </TouchableOpacity>
 
+            <Toast />
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
               <Text style={styles.dividerText}>or continue with</Text>
@@ -178,10 +205,18 @@ export default function SignUp() {
             </View>
 
             <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialButton} onPress={() => toast.info('Google login coming soon')}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() =>
+                  Toast.show({ type: 'info', text1: 'Google login coming soon' })
+                }>
                 <Image style={styles.socialIcon} source={require('../Screens/Image/google.png')} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton} onPress={() => toast.info('Facebook login coming soon')}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() =>
+                  Toast.show({ type: 'info', text1: 'Google login coming soon' })
+                }>
                 <Image style={styles.socialIcon} source={require('../Screens/Image/facebook.png')} />
               </TouchableOpacity>
             </View>
@@ -199,19 +234,14 @@ export default function SignUp() {
 }
 
 // Input Field with Image Icon
-const InputField = ({ icon, ...props }) => (
-  <View style={styles.inputContainer}>
-    <Image style={styles.inputIcon} source={icon} />
-    <TextInput style={styles.input} placeholderTextColor="#94A3B8" {...props} />
-  </View>
-);
-
-// Input Field with Material Icon
-const InputFieldIcon = ({ iconName, ...props }) => (
-  <View style={styles.inputContainer}>
-    <MaterialIcons name={iconName} size={normalize(20)} color="#94A3B8" style={styles.inputIcon} />
-    <TextInput style={styles.input} placeholderTextColor="#94A3B8" {...props} />
-  </View>
+const InputField = ({ icon, error, ...props }) => (
+  <>
+    <View style={[styles.inputContainer, error && styles.errorBorder]}>
+      <Image style={styles.inputIcon} source={icon} />
+      <TextInput style={styles.input} placeholderTextColor="#94A3B8" {...props} />
+    </View>
+    {error && <Text style={styles.errorText}>{error}</Text>}
+  </>
 );
 
 const styles = StyleSheet.create({
@@ -255,6 +285,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: normalize(16),
   },
+  // input1: {
+  //   flex: 1,
+  //   height: normalize(40),
+  //   color: '#94A3B8',
+  //   fontSize: normalize(16),
+  //   top: 5,
+  //   start: 5
+  // },
   loginButton: {
     backgroundColor: '#FB923C',
     borderRadius: 50,
@@ -311,5 +349,51 @@ const styles = StyleSheet.create({
   registerLink: {
     color: '#ff8c00',
     fontSize: normalize(14),
+  },
+  dropdownContainer: {
+    marginBottom: normalize(10),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(15),
+    alignItems: 'center', // Aligns text and icon vertically
+  },
+  dropdownTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // Aligns icon and text in a row
+  },
+  genderIcon: {
+    marginRight: normalize(10), // Space between icon and text
+  },
+  input1: {
+    color: '#94A3B8',
+    fontSize: normalize(16),
+  },
+  dropdownIcon: {
+    marginTop: normalize(3),
+  },
+  dropdownOptions: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+  },
+  dropdownOptionText: {
+    paddingVertical: normalize(12),
+    paddingHorizontal: normalize(15),
+    color: 'white',
+    fontSize: normalize(16),
+  },
+  errorBorder: {
+    borderWidth: 1,
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: normalize(12),
+    marginBottom: normalize(10),
+    marginLeft: normalize(5),
   },
 });

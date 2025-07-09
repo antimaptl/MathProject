@@ -15,6 +15,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
+
 
 const { width } = Dimensions.get('window');
 const scale = width / 375;
@@ -30,73 +32,101 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-const handleLogin = async () => {
-  if (email.trim() === '' || password.trim() === '') {
-    Alert.alert('Error', 'Please fill in all fields');
-    return;
-  }
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
-  try {
-    const response = await fetch('http://13.203.67.227:3000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+  const handleLogin = async () => {
+    let valid = true;
 
-    const data = await response.json();
-    console.log('Login Response:', data);
-
-    if (response.ok) {
-      const { token, player : user } = data;
-
-      if (token && user) {
-        await AsyncStorage.setItem('authToken', token);
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-          console.log("===================%%%%%%%%%%%%%%%%%%%"+AsyncStorage.getItem("userData") )
-        // Alert.alert('Success', 'Login successful', [
-        //   { text: 'OK', onPress: () => navigation.navigate('BottomTab') },
-        // ]);
-        navigation.navigate('BottomTab')
-      } else {
-        Alert.alert('Login Failed', 'Token or user data not received');
-      }
+    if (email.trim() === '') {
+      setEmailError('This field is required');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      valid = false;
     } else {
-      Alert.alert('Login Failed', data.message || 'Invalid credentials');
+      setEmailError('');
     }
-  } catch (error) {
-    console.log('Login error:', error);
-    Alert.alert('Error', 'Something went wrong. Please try again.');
-  }
-};
+
+    if (password.trim() === '') {
+      setPasswordError('This field is required');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    if (!valid) return;
+
+    try {
+      const response = await fetch('http://13.203.67.227:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      console.log('Login Response:', data);
+
+      if (response.ok) {
+        const { token, player: user } = data;
+        if (token && user) {
+          await AsyncStorage.setItem('authToken', token);
+          await AsyncStorage.setItem('userData', JSON.stringify(user));
+          navigation.navigate('BottomTab');
+        } else {
+          Alert.alert('Login Failed', 'Token or user data not received');
+        }
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: 'Invalid credentials',
+        });
+      }
+    } catch (error) {
+      console.log('Login error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    }
+  };
 
   return (
     <LinearGradient colors={['#0f162b', '#0f162b']} style={styles.container}>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Login</Text>
-
-        <View style={styles.inputContainer}>
+        <Toast />
+        <View style={[styles.inputContainer, emailError ? styles.errorBorder : null]}>
           <MaterialIcons name="email" size={normalize(20)} color="#94A3B8" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter your Email"
             placeholderTextColor="#94A3B8"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setEmailError('');
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
           />
         </View>
-        <View style={styles.inputContainer}>
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
+        <View style={[styles.inputContainer, passwordError ? styles.errorBorder : null]}>
           <MaterialIcons name="lock" size={normalize(20)} color="#94A3B8" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter your Password"
             placeholderTextColor="#94A3B8"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setPasswordError('');
+            }}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -107,16 +137,13 @@ const handleLogin = async () => {
             />
           </TouchableOpacity>
         </View>
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-        <TouchableOpacity onPress={() => {
-
-          navigation.navigate("GuessTheSign");
-        }}>
+        <TouchableOpacity onPress={() => navigation.navigate("ForgetPassword")}>
           <Text style={styles.forgotPassword}>Recovery Password</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin
-        }>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Sign in</Text>
         </TouchableOpacity>
 
@@ -141,10 +168,7 @@ const handleLogin = async () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate('SignUp')}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate('SignUp')} activeOpacity={0.7}>
           <Text style={styles.registerText}>
             Not a member? <Text style={styles.registerLink}>Register now</Text>
           </Text>
@@ -164,13 +188,6 @@ const styles = StyleSheet.create({
     width: width > 500 ? 500 : width * 0.9,
     padding: normalize(20),
   },
-  input: {
-  flex: 1,
-  height: normalize(43),
-  color: 'white',
-  fontSize: normalize(16),
-  paddingRight: normalize(10),
-},
   title: {
     fontSize: normalize(32),
     fontWeight: '600',
@@ -183,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 10,
-    marginBottom: normalize(15),
+    marginBottom: normalize(10),
     paddingHorizontal: normalize(15),
   },
   inputIcon: {
@@ -194,6 +211,18 @@ const styles = StyleSheet.create({
     height: normalize(43),
     color: 'white',
     fontSize: normalize(16),
+    paddingRight: normalize(10),
+  },
+  errorText: {
+    color: 'red',
+    fontSize: normalize(12),
+    marginTop: -normalize(8),
+    marginBottom: normalize(10),
+    marginLeft: normalize(5),
+  },
+  errorBorder: {
+    borderWidth: 1,
+    borderColor: 'red',
   },
   forgotPassword: {
     color: '#94A3B8',

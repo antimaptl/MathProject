@@ -35,7 +35,7 @@ const WellDoneScreen = ({ route }) => {
       <View style={styles.scoreBox}><Text style={styles.label}>Skipped Questions</Text><Text style={styles.value}>{skippedQuestions}</Text></View>
       <View style={styles.scoreBox}><Text style={styles.label}>Correct Percentage</Text><Text style={styles.value}>{correctPercentage}%</Text></View>
 
-      <TouchableOpacity onPress={() => navigation.navigate("ChangeDifficultyScreen", { difficulty })} style={styles.newGameBtn}>
+      <TouchableOpacity onPress={() => navigation.navigate("PlayGame", { difficulty })} style={styles.newGameBtn}>
         <Text style={styles.newGameText}>New Game</Text>
       </TouchableOpacity>
 

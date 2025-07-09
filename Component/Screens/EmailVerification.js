@@ -9,8 +9,8 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
+import Toast from 'react-native-toast-message'; // ✅ Toast import
 
 const { width } = Dimensions.get('window');
 const scale = width / 375;
@@ -39,58 +39,80 @@ export default function EmailVerification() {
   };
 
   const handleVerifyOtp = async () => {
-    const userEnteredOtp = otp.join('');
+  const userEnteredOtp = otp.join('').trim();
 
-    console.log('User data from route:', userData);
-    console.log('OTP entered:', userEnteredOtp);
+  // 1) Client‑side validation
+  if (
+    !userData.username?.trim() ||
+    !userData.email?.trim() ||
+    !userData.password?.trim() ||
+    !userData.gender?.trim() ||
+    !userData.dateOfBirth?.toString().trim() ||
+    !userData.country?.trim() ||
+    !userEnteredOtp
+  ) {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: 'Please fill in all fields and enter the OTP.',
+    });
+    return;
+  }
 
-    if (
-      !userData.username?.trim() ||
-      !userData.email?.trim() ||
-      !userData.password?.trim() ||
-      !userData.country?.trim() ||
-      !userData.dateOfBirth?.toString().trim() ||
-      !userEnteredOtp.trim()
-    ) {
-      Alert.alert('Error', 'Please fill all fields before submitting.');
-      return;
-    }
-
-    const payload = {
-      username: userData.username.trim(),
-      email: userData.email.trim(),
-      password: userData.password.trim(),
-      country: userData.country.trim(),
-      dateOfBirth: Number(userData.dateOfBirth),
-      otp: userEnteredOtp.trim(),
-    };
-
-    console.log('📦 Payload being sent:', JSON.stringify(payload, null, 2));
-
-    try {
-      const registerResponse = await fetch(
-        'http://13.203.67.227:3000/api/auth/signup',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const registerData = await registerResponse.json();
-      console.log('Register response data:', registerData);
-
-      if (!registerResponse.ok) {
-        throw new Error(registerData.message || 'Registration failed');
-      }
-
-      Alert.alert('Success', 'Registration successful!');
-      navigation.navigate('Login');
-    } catch (error) {
-      console.log('Registration error:', error);
-      Alert.alert('Error', error.message || 'Something went wrong');
-    }
+  // 2) Build payload with the *exact* formats your API expects
+  const payload = {
+    username:    userData.username.trim(),
+    email:       userData.email,
+    password:    userData.password.trim(),
+    gender:      userData.gender.trim().toLowerCase(),
+    country:     userData.country.trim(),
+    // <-- Preserve the YYYY-MM-DD string exactly
+    dateOfBirth: String(userData.dateOfBirth).trim(),
+    otp:         userEnteredOtp,
   };
+
+  console.log('🔶 Raw payload →', JSON.stringify(payload, null, 2));
+
+  try {
+    const res = await fetch('http://13.203.67.227:3000/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await res.json();
+    console.log('🔷 Server responded with:', res.status, body);
+
+    if (res.status === 400) {
+      // assuming 400 = invalid OTP
+      return Toast.show({
+        type: 'error',
+        text1: 'Invalid OTP',
+        text2: body.message || 'The OTP you entered is incorrect.',
+      });
+    }
+
+    if (!res.ok) {
+      throw new Error(body.message || 'Registration failed');
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Registration successful!',
+    });
+    navigation.navigate('Login');
+  } catch (err) {
+    console.error('❌ Signup error:', err);
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: err.message || 'Something went wrong',
+    });
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -119,6 +141,8 @@ export default function EmailVerification() {
       <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyOtp}>
         <Text style={styles.verifyText}>Verify</Text>
       </TouchableOpacity>
+
+      <Toast /> {/* ✅ Required to show the toast */}
     </KeyboardAvoidingView>
   );
 }
